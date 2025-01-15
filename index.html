@@ -3,22 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Linux GUI</title>
+    <title>Linux Playground</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.min.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f9; }
-        #terminal { padding: 10px; height: 500px; overflow-y: auto; background: black; color: white; font-family: monospace; }
-        #input { width: 100%; padding: 10px; font-family: monospace; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        #terminal {
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            background: black;
+            color: white;
+            font-family: monospace;
+        }
+        #input {
+            width: 100%;
+            padding: 10px;
+            font-family: monospace;
+        }
+        #fileList {
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
     <h1>Linux Playground</h1>
     <div id="terminal"></div>
     <input id="input" placeholder="Enter command" />
+    <h2>Upload a File</h2>
+    <input type="file" id="fileInput">
+    <button onclick="uploadFile()">Upload</button>
+    <h2>File System</h2>
+    <button onclick="listFiles()">List Files</button>
+    <ul id="fileList"></ul>
     <script>
         const socket = io();
         const terminal = document.getElementById('terminal');
         const input = document.getElementById('input');
+        const fileList = document.getElementById('fileList');
 
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
@@ -33,6 +59,30 @@
             terminal.innerHTML += data.output + '\n';
             terminal.scrollTop = terminal.scrollHeight;
         });
+
+        function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/upload', { method: 'POST', body: formData })
+                .then(response => response.text())
+                .then(data => terminal.innerHTML += data + '\n');
+        }
+
+        function listFiles() {
+            fetch('/list_files')
+                .then(response => response.json())
+                .then(data => {
+                    fileList.innerHTML = '';
+                    data.files.forEach(file => {
+                        const li = document.createElement('li');
+                        li.textContent = file;
+                        fileList.appendChild(li);
+                    });
+                });
+        }
     </script>
 </body>
 </html>
