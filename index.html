@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Linux PlayGround</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='xterm.css') }}">
 </head>
 <body>
-    <h1>Welcome to the Linux PlayGround</h1>
-    <p>Type your Linux commands in the URL path after <code>/execute/</code></p>
-    <p>Example: <code>/execute/ls</code></p>
+    <div id="terminal" style="height: 500px; width: 100%;"></div>
+    <script src="{{ url_for('static', filename='xterm.js') }}"></script>
+    <script src="{{ url_for('static', filename='terminal.js') }}"></script>
 </body>
 </html>
