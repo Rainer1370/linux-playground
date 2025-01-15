@@ -3,11 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Portfolio</title>
-    <link rel="stylesheet" href="static/styles.css">
+    <title>Linux GUI</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f9; }
+        #terminal { padding: 10px; height: 500px; overflow-y: auto; background: black; color: white; font-family: monospace; }
+        #input { width: 100%; padding: 10px; font-family: monospace; }
+    </style>
 </head>
 <body>
-    <h1>Welcome to My Portfolio</h1>
-    <p>This is a web-based portfolio hosted entirely online.</p>
+    <h1>Linux Playground</h1>
+    <div id="terminal"></div>
+    <input id="input" placeholder="Enter command" />
+    <script>
+        const socket = io();
+        const terminal = document.getElementById('terminal');
+        const input = document.getElementById('input');
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const cmd = input.value;
+                terminal.innerHTML += '> ' + cmd + '\n';
+                socket.emit('command', { cmd });
+                input.value = '';
+            }
+        });
+
+        socket.on('response', (data) => {
+            terminal.innerHTML += data.output + '\n';
+            terminal.scrollTop = terminal.scrollHeight;
+        });
+    </script>
 </body>
 </html>
