@@ -10,6 +10,9 @@ def index():
 
 @app.route("/execute/<command>")
 def execute_command(command):
+    allowed_commands = ["ls", "pwd", "whoami"]  # Define allowed commands
+    if command not in allowed_commands:
+        return "<pre>Command not allowed!</pre>"
     try:
         output = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT, text=True)
     except subprocess.CalledProcessError as e:
@@ -17,4 +20,4 @@ def execute_command(command):
     return f"<pre>{output}</pre>"
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0")
+    app.run(debug=False, host="0.0.0.0")
