@@ -4,51 +4,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Linux Playground</title>
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <style>
         body {
-            background-color: black;
-            color: green;
-            font-family: monospace;
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: #0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        h1 {
+            text-align: center;
+            margin: 10px 0;
         }
         #terminal {
-            height: 80vh;
-            overflow-y: scroll;
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #0f0;
+            margin: 10px;
+            background-color: #111;
         }
         #input {
-            width: 100%;
-            border: none;
-            background: black;
-            color: green;
+            display: flex;
+            padding: 10px;
+        }
+        input {
+            flex: 1;
             font-family: monospace;
             font-size: 16px;
-            outline: none;
+            padding: 5px;
+            border: 1px solid #0f0;
+            background-color: #111;
+            color: #0f0;
+        }
+        button {
+            padding: 5px 10px;
+            font-size: 16px;
+            border: 1px solid #0f0;
+            background-color: #111;
+            color: #0f0;
+            margin-left: 5px;
         }
     </style>
 </head>
 <body>
     <h1>Linux Playground</h1>
     <div id="terminal"></div>
-    <input id="input" placeholder="Enter Linux command and press Enter">
+    <div id="input">
+        <input type="text" id="command" placeholder="Enter Linux command and press Enter">
+        <button onclick="sendCommand()">Run</button>
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.1/socket.io.min.js"></script>
     <script>
         const socket = io();
         const terminal = document.getElementById('terminal');
-        const input = document.getElementById('input');
+        const commandInput = document.getElementById('command');
 
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                const command = input.value.trim();
-                if (command) {
-                    terminal.innerHTML += `<div>> ${command}</div>`;
-                    socket.emit('command', { cmd: command });
-                    input.value = '';
-                }
+        // Handle sending commands
+        function sendCommand() {
+            const command = commandInput.value.trim();
+            if (command) {
+                socket.emit('command', { cmd: command });
+                terminal.innerHTML += `<div>> ${command}</div>`;
+                commandInput.value = '';
             }
-        });
+        }
 
+        // Handle receiving responses
         socket.on('response', (data) => {
             terminal.innerHTML += `<div>${data.output}</div>`;
             terminal.scrollTop = terminal.scrollHeight;
+        });
+
+        // Allow pressing Enter to send command
+        commandInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+                sendCommand();
+            }
         });
     </script>
 </body>
