@@ -5,31 +5,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Linux Playground</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xterm@4.19.0/lib/xterm.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@4.19.0/css/xterm.css">
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-        #terminal { height: 500px; width: 100%; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e1e;
+            color: white;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+        }
+        #terminal {
+            width: 90%;
+            height: 300px;
+            margin: 20px auto;
+            padding: 10px;
+            background: black;
+            color: white;
+            font-family: monospace;
+            overflow-y: auto;
+            border-radius: 5px;
+        }
+        #input {
+            width: 90%;
+            margin: 10px auto;
+            padding: 10px;
+            display: block;
+            font-family: monospace;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: #333;
+            color: white;
+        }
     </style>
 </head>
 <body>
     <h1>Linux Playground</h1>
     <div id="terminal"></div>
+    <input id="input" placeholder="Enter Linux commands here and press Enter" />
+
     <script>
-        const term = new Terminal();
         const socket = io();
+        const terminal = document.getElementById('terminal');
+        const input = document.getElementById('input');
 
-        term.open(document.getElementById('terminal'));
-        term.prompt = () => { term.write('\r\n$ '); };
-        term.prompt();
-
-        term.onData(data => {
-            socket.emit('command', { cmd: data.trim() });
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const command = input.value.trim();
+                if (command) {
+                    terminal.innerHTML += `<div style="color: green;">> ${command}</div>`;
+                    socket.emit('command', { cmd: command });
+                    input.value = '';
+                }
+            }
         });
 
-        socket.on('response', data => {
-            term.write('\r\n' + data.output);
-            term.prompt();
+        socket.on('response', (data) => {
+            terminal.innerHTML += `<div style="color: white;">${data.output}</div>`;
+            terminal.scrollTop = terminal.scrollHeight; // Auto-scroll to the bottom
         });
     </script>
 </body>
