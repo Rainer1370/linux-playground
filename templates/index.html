@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux Playground</title>
+    <link rel="stylesheet" href="static/css/xterm.css">
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <h1>Linux Playground</h1>
+    <p>Welcome to the Linux Playground! Your place for playing with Python, EPICS, and more...</p>
+    <div id="terminal-container" style="width: 100%; height: 500px; border: 1px solid black;"></div>
+    <script src="static/js/xterm.js"></script>
+    <script src="static/js/xterm-addon-fit.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@5.8.0/dist/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+        const terminal = new Terminal();
+        const fitAddon = new FitAddon.FitAddon();
+        terminal.loadAddon(fitAddon);
+
+        terminal.open(document.getElementById('terminal-container'));
+        fitAddon.fit();
+
+        terminal.write('~$ ');
+
+        terminal.onData(data => {
+            socket.emit('input', data);
+        });
+
+        socket.on('output', data => {
+            terminal.write(data);
+            terminal.write('~$ ');  // Display the prompt after each command
+        });
+    </script>
+</body>
+</html>
