@@ -2,18 +2,16 @@ import os
 import pty
 import subprocess
 import select
-from flask import Flask, render_template, request
+from flask import Flask, send_from_directory
 from flask_socketio import SocketIO, emit
 
-app = Flask(__name__, static_folder="static", template_folder="templates")
+app = Flask(__name__, static_folder="static")
 socketio = SocketIO(app)
 
 @app.route("/")
 def index():
-    try:
-        return render_template("index.html")
-    except Exception as e:
-        return f"Error loading template: {str(e)}", 500
+    # Serve index.html from the root directory
+    return send_from_directory(os.getcwd(), "index.html")
 
 @socketio.on("input")
 def handle_input(data):
@@ -42,7 +40,7 @@ def handle_input(data):
                         break
             os.close(master)
         except Exception as e:
-            emit("output", {"output": f"Error executing command: {str(e)}"})
+            emit("output", {"output": f"Error: {str(e)}"})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    socketio.run(app, host="0.0.0.0", port=5000)
