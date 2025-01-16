@@ -23,6 +23,8 @@ RUN apt-get update && \
     libsqlite3-dev \
     zlib1g-dev \
     && apt-get clean
+    pip install flask-socketio
+    pip install --upgrade pip
 
 # Install EPICS Base
 RUN git clone --depth=1 https://github.com/epics-base/epics-base.git /epics/base && \
