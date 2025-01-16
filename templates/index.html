@@ -6,11 +6,21 @@
     <title>Linux Playground</title>
     <link rel="stylesheet" href="static/css/xterm.css">
     <link rel="stylesheet" href="static/css/style.css">
+    <style>
+        #terminal-container {
+            width: 100%;
+            height: 500px;
+            border: 1px solid black;
+            text-align: left; /* Left-align text */
+            padding: 5px; /* Add padding for aesthetics */
+            font-family: monospace; /* Ensure monospace font */
+        }
+    </style>
 </head>
 <body>
     <h1>Linux Playground</h1>
     <p>Welcome to the Linux Playground! Your place for playing with Python, EPICS, and more...</p>
-    <div id="terminal-container" style="width: 100%; height: 500px; border: 1px solid black;"></div>
+    <div id="terminal-container"></div>
     <script src="static/js/xterm.js"></script>
     <script src="static/js/xterm-addon-fit.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client/dist/socket.io.min.js"></script>
@@ -25,15 +35,20 @@
         const socket = io();
         let currentPrompt = '~$ ';
 
-        terminal.write('Welcome to the Linux Playground! Your place for playing with Python, EPICS, and more...\r\n');
         terminal.write(currentPrompt);
 
         terminal.onData(data => {
             if (data === '\r') { // Enter key
-                const input = terminal.buffer.active.getLine(terminal.buffer.active.cursorY).translateToString().replace(currentPrompt, '');
-                socket.emit('input', input);
-                terminal.write('\r\n');
-                terminal.write(currentPrompt);
+                const command = terminal.buffer.active.getLine(terminal.buffer.active.cursorY)
+                    .translateToString()
+                    .replace(currentPrompt, '')
+                    .trim();
+
+                if (command) {
+                    socket.emit('input', command);
+                }
+
+                terminal.write('\r\n' + currentPrompt);
             } else if (data === '\u007F') { // Backspace key
                 if (terminal.buffer.active.cursorX > currentPrompt.length) {
                     terminal.write('\b \b');
@@ -44,8 +59,7 @@
         });
 
         socket.on('output', data => {
-            terminal.write(data + '\r\n');
-            terminal.write(currentPrompt);
+            terminal.write(data + '\r\n' + currentPrompt);
         });
     </script>
 </body>
