@@ -3,5 +3,5 @@ Flask-SocketIO==5.3.0          # Latest Flask-SocketIO
 eventlet==0.34.1               # Latest eventlet, compatible with dnspython 2.x
 dnspython==2.3.0               # Latest dnspython, compatible with eventlet >=0.33.3
 simple-websocket==0.10.1       # Latest version
-Werkzeug==2.3.6                # Latest version
+Werkzeug==2.3.7                # Latest version
 gunicorn==20.1.0               # Latest Gunicorn
