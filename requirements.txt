@@ -1,5 +1,6 @@
 Flask==2.3.3                   # Latest Flask
 Flask-SocketIO==5.3.0          # Latest Flask-SocketIO
+Flask-cors==3.0.10
 eventlet==0.34.1               # Latest eventlet, compatible with dnspython 2.x
 dnspython==2.3.0               # Latest dnspython, compatible with eventlet >=0.33.3
 simple-websocket==0.10.1       # Latest version
