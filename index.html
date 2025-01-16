@@ -8,41 +8,64 @@
     <link rel="stylesheet" href="static/css/xterm.css">
     <!-- Include your custom styles -->
     <link rel="stylesheet" href="static/css/style.css">
+    <style>
+        #terminal-container {
+            width: 100%;
+            height: 500px;
+            border: 1px solid black;
+        }
+    </style>
 </head>
 <body>
     <h1>Linux Playground</h1>
     <!-- Terminal container -->
-    <div id="terminal-container" style="width: 100%; height: 500px; border: 1px solid black;"></div>
+    <div id="terminal-container"></div>
     <!-- Include xterm.js -->
     <script src="static/js/xterm.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+    <!-- Include xterm-addon-fit.js -->
+    <script src="static/js/xterm-addon-fit.js"></script>
     <!-- Include socket.io -->
     <script src="https://cdn.jsdelivr.net/npm/socket.io-client/dist/socket.io.min.js"></script>
     <!-- Include your custom scripts -->
     <script>
         const socket = io();
         const terminal = new Terminal();
-        const fitAddon = new FitAddon.FitAddon();
+        const fitAddon = new window.FitAddon.FitAddon();
         terminal.loadAddon(fitAddon);
 
         terminal.open(document.getElementById('terminal-container'));
         fitAddon.fit();
 
-        terminal.write('Welcome to the Linux Playground!\r\n');
+        const prompt = '~$ ';
+        let inputBuffer = '';
 
-        // Handle terminal input
+        const showPrompt = () => {
+            terminal.write(`\r\n${prompt}`);
+        };
+
+        terminal.write('Welcome to the Linux Playground!\r\n');
+        showPrompt();
+
+        // Handle terminal keypress events
         terminal.onData(data => {
-            socket.emit('input', data);
+            if (data === '\r') { // Enter key
+                socket.emit('input', inputBuffer);
+                inputBuffer = ''; // Clear the buffer
+            } else if (data === '\u007F') { // Backspace
+                if (inputBuffer.length > 0) {
+                    inputBuffer = inputBuffer.slice(0, -1);
+                    terminal.write('\b \b'); // Erase character in terminal
+                }
+            } else {
+                inputBuffer += data; // Add to buffer
+                terminal.write(data); // Display character in terminal
+            }
         });
 
         // Handle terminal output from server
         socket.on('output', data => {
-            terminal.write(data);
-        });
-
-        // Resize terminal on window resize
-        window.addEventListener('resize', () => {
-            fitAddon.fit();
+            terminal.write(data.output);
+            showPrompt();
         });
     </script>
 </body>
