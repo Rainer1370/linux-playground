@@ -23,8 +23,10 @@ RUN apt-get update && \
     libsqlite3-dev \
     zlib1g-dev \
     && apt-get clean
-    pip install flask-socketio
-    pip install --upgrade pip
+
+# Upgrade pip and install Python dependencies
+RUN pip3 install --upgrade pip && \
+    pip3 install flask-socketio
 
 # Install EPICS Base
 RUN git clone --depth=1 https://github.com/epics-base/epics-base.git /epics/base && \
@@ -40,11 +42,11 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$EPICS_BASE/lib/linux-x86_64
 COPY . /app
 WORKDIR /app
 
-# Install Python dependencies
+# Install Python dependencies from requirements
 RUN pip3 install -r requirements.txt
 
 # Expose port
 EXPOSE 5000
 
 # Start application
-CMD ["python3", "app.py"]
+CMD ["gunicorn", "-k", "eventlet", "-w", "1", "app:app"]
