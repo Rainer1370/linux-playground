@@ -2,20 +2,21 @@ import os
 import pty
 import subprocess
 import select
-from flask import Flask, send_from_directory
+from flask import Flask, render_template
 from flask_socketio import SocketIO, emit
+from flask_cors import CORS
 
-app = Flask(__name__, static_folder="static")
-socketio = SocketIO(app)
+app = Flask(__name__, static_folder="static", template_folder="templates")
+CORS(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 @app.route("/")
 def index():
-    # Serve index.html from the root directory
-    return send_from_directory(os.getcwd(), "index.html")
+    return render_template("index.html")
 
 @socketio.on("input")
 def handle_input(data):
-    command = data.get("command")
+    command = data.strip()
     if command:
         try:
             master, slave = pty.openpty()
@@ -35,12 +36,20 @@ def handle_input(data):
                     chunk = os.read(master, 1024)
                     if chunk:
                         output += chunk
-                        emit("output", {"output": chunk.decode()})
+                        emit("output", chunk.decode())
                     else:
                         break
             os.close(master)
         except Exception as e:
-            emit("output", {"output": f"Error: {str(e)}"})
+            emit("output", f"Error: {str(e)}\n")
+
+@socketio.on("connect")
+def connect_handler():
+    print("Client connected")
+
+@socketio.on("disconnect")
+def disconnect_handler():
+    print("Client disconnected")
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=5000)
