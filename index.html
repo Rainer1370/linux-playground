@@ -4,46 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Linux Playground</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.min.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f9;
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-top: 20px;
+            background-color: black;
+            color: green;
+            font-family: monospace;
         }
         #terminal {
-            padding: 10px;
-            height: 400px;
-            overflow-y: auto;
-            background: black;
-            color: white;
-            font-family: monospace;
-            margin: 20px auto;
-            border-radius: 5px;
-            width: 90%;
-            box-sizing: border-box;
+            height: 80vh;
+            overflow-y: scroll;
         }
         #input {
-            width: 90%;
-            padding: 10px;
-            margin: 20px auto;
+            width: 100%;
+            border: none;
+            background: black;
+            color: green;
             font-family: monospace;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            display: block;
+            font-size: 16px;
+            outline: none;
         }
     </style>
 </head>
 <body>
     <h1>Linux Playground</h1>
     <div id="terminal"></div>
-    <input id="input" placeholder="Enter Linux command and press Enter" />
+    <input id="input" placeholder="Enter Linux command and press Enter">
     <script>
         const socket = io();
         const terminal = document.getElementById('terminal');
@@ -53,16 +39,16 @@
             if (e.key === 'Enter') {
                 const command = input.value.trim();
                 if (command) {
-                    terminal.innerHTML += `<span style="color: green;">> ${command}</span><br>`;
-                    socket.emit('command', { command });
+                    terminal.innerHTML += `<div>> ${command}</div>`;
+                    socket.emit('command', { cmd: command });
                     input.value = '';
                 }
             }
         });
 
         socket.on('response', (data) => {
-            terminal.innerHTML += `<span style="color: white;">${data.output}</span><br>`;
-            terminal.scrollTop = terminal.scrollHeight; // Auto-scroll
+            terminal.innerHTML += `<div>${data.output}</div>`;
+            terminal.scrollTop = terminal.scrollHeight;
         });
     </script>
 </body>
