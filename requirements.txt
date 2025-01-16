@@ -1,6 +1,5 @@
 Flask==2.0.3
 Flask-SocketIO==5.2.0
-eventlet==0.33.0  # Required for asynchronous WebSocket handling
-gunicorn==20.1.0  # WSGI HTTP Server for UNIX
-Werkzeug==2.0.3   # Comprehensive WSGI web application library
-dnspython==2.2.1
+eventlet==0.33.0
+gunicorn==20.1.0
+Werkzeug==2.0.3
