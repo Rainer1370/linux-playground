@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
 import subprocess
-import os
 
 app = Flask(__name__, static_folder='static', template_folder='.')
 socketio = SocketIO(app)
@@ -14,13 +13,14 @@ def index():
 def handle_command(data):
     cmd = data['cmd']
     try:
-        # Execute the command in a shell
         process = subprocess.Popen(
-            cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
-        output, error = process.communicate()
-        response = output if output else error
-        emit('response', {'output': response})
+        stdout, stderr = process.communicate()
+        if stdout:
+            emit('response', {'output': stdout.decode('utf-8')})
+        if stderr:
+            emit('response', {'output': stderr.decode('utf-8')})
     except Exception as e:
         emit('response', {'output': str(e)})
 
