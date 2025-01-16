@@ -4,43 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Linux Playground</title>
-    <link rel="stylesheet" href="/static/xterm.css">
-    <script src="/static/xterm.js"></script>
-    <script src="/static/socket.io.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: black;
-            color: white;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-        #terminal-container {
-            flex-grow: 1;
-            margin: 20px;
-            border: 1px solid #444;
-        }
-    </style>
+    <!-- Include xterm.css -->
+    <link rel="stylesheet" href="static/css/xterm.css">
+    <!-- Include your custom styles -->
+    <link rel="stylesheet" href="static/css/style.css">
 </head>
 <body>
     <h1>Linux Playground</h1>
-    <div id="terminal-container"></div>
-
+    <!-- Terminal container -->
+    <div id="terminal-container" style="width: 100%; height: 500px; border: 1px solid black;"></div>
+    <!-- Include xterm.js -->
+    <script src="static/js/xterm.js"></script>
+    <!-- Include socket.io -->
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client/dist/socket.io.min.js"></script>
+    <!-- Include your custom scripts -->
     <script>
         const socket = io();
-        const term = new Terminal();
-        const terminalContainer = document.getElementById("terminal-container");
+        const terminal = new Terminal();
+        const fitAddon = new window.FitAddon.FitAddon();
+        terminal.loadAddon(fitAddon);
 
-        term.open(terminalContainer);
+        terminal.open(document.getElementById('terminal-container'));
+        fitAddon.fit();
 
-        term.onData((input) => {
-            socket.emit("input", { command: input });
+        terminal.write('Welcome to the Linux Playground!\r\n');
+
+        // Handle terminal input
+        terminal.onData(data => {
+            socket.emit('input', data);
         });
 
-        socket.on("output", (data) => {
-            term.write(data.output);
+        // Handle terminal output from server
+        socket.on('output', data => {
+            terminal.write(data);
         });
     </script>
 </body>
