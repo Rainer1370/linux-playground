@@ -5,121 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Linux Playground</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.1/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm@4.19.0/lib/xterm.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@4.19.0/css/xterm.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f9;
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-top: 20px;
-        }
-        #terminal {
-            padding: 10px;
-            height: 400px;
-            overflow-y: auto;
-            background: black;
-            color: white;
-            font-family: monospace;
-            margin: 20px auto;
-            border-radius: 5px;
-            width: 90%;
-            box-sizing: border-box;
-        }
-        #input {
-            width: 90%;
-            padding: 10px;
-            margin: 20px auto;
-            font-family: monospace;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            display: block;
-        }
-        button {
-            display: block;
-            margin: 10px auto;
-            padding: 10px 20px;
-            background-color: #333;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #555;
-        }
-        #fileList {
-            margin: 20px auto;
-            width: 90%;
-        }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        #terminal { height: 500px; width: 100%; }
     </style>
 </head>
 <body>
     <h1>Linux Playground</h1>
     <div id="terminal"></div>
-    <input id="input" placeholder="Enter Linux, Python, or EPICS command" />
-    <h2 style="text-align: center;">File Operations</h2>
-    <input type="file" id="fileInput">
-    <button onclick="uploadFile()">Upload File</button>
-    <button onclick="listFiles()">List Files</button>
-    <ul id="fileList"></ul>
     <script>
+        const term = new Terminal();
         const socket = io();
-        const terminal = document.getElementById('terminal');
-        const input = document.getElementById('input');
-        const fileList = document.getElementById('fileList');
 
-        // Handle command input
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                const cmd = input.value.trim();
-                if (cmd) {
-                    terminal.innerHTML += `<span style="color: green;">> ${cmd}</span><br>`;
-                    socket.emit('command', { cmd });
-                    input.value = '';
-                }
-            }
+        term.open(document.getElementById('terminal'));
+        term.prompt = () => { term.write('\r\n$ '); };
+        term.prompt();
+
+        term.onData(data => {
+            socket.emit('command', { cmd: data.trim() });
         });
 
-        // Display server response
-        socket.on('response', (data) => {
-            const output = data.output.replace(/\n/g, '<br>');
-            terminal.innerHTML += `<span style="color: white;">${output}</span><br>`;
-            terminal.scrollTop = terminal.scrollHeight; // Auto-scroll
+        socket.on('response', data => {
+            term.write('\r\n' + data.output);
+            term.prompt();
         });
-
-        // Upload file
-        function uploadFile() {
-            const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
-            if (!file) {
-                terminal.innerHTML += `<span style="color: red;">No file selected for upload.</span><br>`;
-                return;
-            }
-            const formData = new FormData();
-            formData.append('file', file);
-
-            fetch('/upload', { method: 'POST', body: formData })
-                .then(response => response.text())
-                .then(data => terminal.innerHTML += `<span style="color: cyan;">${data}</span><br>`);
-        }
-
-        // List files
-        function listFiles() {
-            fetch('/list_files')
-                .then(response => response.json())
-                .then(data => {
-                    fileList.innerHTML = '';
-                    data.files.forEach(file => {
-                        const li = document.createElement('li');
-                        li.textContent = file;
-                        fileList.appendChild(li);
-                    });
-                });
-        }
     </script>
 </body>
 </html>
