@@ -1,34 +1,45 @@
-from flask import Flask, render_template, request
-from flask_socketio import SocketIO, emit
+import os
+import pty
 import subprocess
-import shlex
+import select
+from flask import Flask, render_template
+from flask_socketio import SocketIO, emit
 
-app = Flask(__name__, static_folder='static', template_folder='.')
+app = Flask(__name__, static_folder="static", template_folder="templates")
 socketio = SocketIO(app)
 
-@app.route('/')
+@app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template("index.html")
 
-@socketio.on('command')
-def handle_command(data):
-    try:
-        command = data.get('cmd', '')
-        # Whitelist of allowed commands for security
-        allowed_commands = ['ls', 'pwd', 'echo', 'cat', 'whoami']
-        if any(command.startswith(allowed) for allowed in allowed_commands):
-            # Execute the command safely
-            process = subprocess.run(shlex.split(command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-            response = {
-                'output': process.stdout or process.stderr
-            }
-        else:
-            response = {
-                'output': 'Command not allowed!'
-            }
-        emit('response', response)
-    except Exception as e:
-        emit('response', {'output': f'Error: {str(e)}'})
+@socketio.on("input")
+def handle_input(data):
+    command = data.get("command")
+    if command:
+        try:
+            master, slave = pty.openpty()
+            process = subprocess.Popen(
+                command,
+                shell=True,
+                stdin=slave,
+                stdout=slave,
+                stderr=slave,
+                close_fds=True
+            )
+            os.close(slave)
+            output = b""
+            while True:
+                r, _, _ = select.select([master], [], [], 0.1)
+                if r:
+                    chunk = os.read(master, 1024)
+                    if chunk:
+                        output += chunk
+                        emit("output", {"output": chunk.decode()})
+                    else:
+                        break
+            os.close(master)
+        except Exception as e:
+            emit("output", {"output": f"Error: {str(e)}"})
 
-if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000)
+if __name__ == "__main__":
+    socketio.run(app, host="0.0.0.0", port=5000)
