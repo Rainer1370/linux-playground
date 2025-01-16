@@ -4,76 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Linux Playground</title>
-    <!-- Include xterm.css -->
     <link rel="stylesheet" href="static/css/xterm.css">
-    <!-- Include your custom styles -->
     <link rel="stylesheet" href="static/css/style.css">
-    <style>
-        #terminal-container {
-            width: 100%;
-            height: 500px;
-            border: 1px solid black;
-        }
-    </style>
 </head>
 <body>
     <h1>Linux Playground</h1>
-    <!-- Terminal container -->
-    <div id="terminal-container"></div>
-    <!-- Include xterm.js -->
+    <p>Welcome to the Linux Playground! Your place for playing with Python, EPICS, and more...</p>
+    <div id="terminal-container" style="width: 100%; height: 500px; border: 1px solid black;"></div>
     <script src="static/js/xterm.js"></script>
-    <!-- Include xterm-addon-fit.js -->
     <script src="static/js/xterm-addon-fit.js"></script>
-    <!-- Include socket.io -->
-    <script src="https://cdn.jsdelivr.net/npm/socket.io-client/dist/socket.io.min.js"></script>
-    <!-- Include your custom scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@5.8.0/dist/socket.io.min.js"></script>
     <script>
         const socket = io();
         const terminal = new Terminal();
-        const fitAddon = new window.FitAddon.FitAddon();
+        const fitAddon = new FitAddon.FitAddon();
         terminal.loadAddon(fitAddon);
 
         terminal.open(document.getElementById('terminal-container'));
         fitAddon.fit();
 
-        const prompt = '~$ ';
-        let inputBuffer = '';
+        terminal.write('~$ ');
 
-        const showPrompt = () => {
-            terminal.write(`\r\n${prompt}`);
-        };
-
-        terminal.write('Welcome to the Linux Playground!\r\nYour place for playing with Python, EPICS, and more...\r\n');
-        showPrompt();
-
-        // Handle terminal keypress events
         terminal.onData(data => {
-            if (data === '\r') { // Enter key
-                if (inputBuffer.trim()) {
-                    socket.emit('input', { command: inputBuffer.trim() }); // Send input to server
-                    terminal.write('\r\n'); // Move to the next line
-                }
-                inputBuffer = ''; // Clear the buffer
-                showPrompt(); // Show prompt again
-            } else if (data === '\u007F') { // Backspace
-                if (inputBuffer.length > 0) {
-                    inputBuffer = inputBuffer.slice(0, -1);
-                    terminal.write('\b \b'); // Erase character in terminal
-                }
-            } else {
-                inputBuffer += data; // Add to buffer
-                terminal.write(data); // Display character in terminal
-            }
+            socket.emit('input', data);
         });
 
-        // Handle terminal output from server
         socket.on('output', data => {
-            terminal.write(data.output || '\r\n');
-        });
-
-        // Handle errors or unrecognized commands
-        socket.on('error', error => {
-            terminal.write(`\r\nError: ${error}\r\n`);
+            terminal.write(data);
+            terminal.write('~$ ');  // Display the prompt after each command
         });
     </script>
 </body>
