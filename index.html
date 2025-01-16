@@ -43,14 +43,18 @@
             terminal.write(`\r\n${prompt}`);
         };
 
-        terminal.write('Welcome to the Linux Playground!\r\n');
+        terminal.write('Welcome to the Linux Playground!\r\nYour place for playing with Python, EPICS, and more...\r\n');
         showPrompt();
 
         // Handle terminal keypress events
         terminal.onData(data => {
             if (data === '\r') { // Enter key
-                socket.emit('input', inputBuffer);
+                if (inputBuffer.trim()) {
+                    socket.emit('input', { command: inputBuffer.trim() }); // Send input to server
+                    terminal.write('\r\n'); // Move to the next line
+                }
                 inputBuffer = ''; // Clear the buffer
+                showPrompt(); // Show prompt again
             } else if (data === '\u007F') { // Backspace
                 if (inputBuffer.length > 0) {
                     inputBuffer = inputBuffer.slice(0, -1);
@@ -64,8 +68,12 @@
 
         // Handle terminal output from server
         socket.on('output', data => {
-            terminal.write(data.output);
-            showPrompt();
+            terminal.write(data.output || '\r\n');
+        });
+
+        // Handle errors or unrecognized commands
+        socket.on('error', error => {
+            terminal.write(`\r\nError: ${error}\r\n`);
         });
     </script>
 </body>
